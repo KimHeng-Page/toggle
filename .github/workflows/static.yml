@@ -1,43 +1,164 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
-
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-100%);
+            z-index: 50;
+        }
+        #sidebar.open {
+            transform: translateX(0);
+        }
+        #overlay {
+            z-index: 40;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            visibility: hidden;
+        }
+        #overlay.open {
+            opacity: 0.5;
+            visibility: visible;
+        }
+        .dropdown-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+        .dropdown-menu.open {
+            max-height: 200px;
+        }
+        .dropdown-toggle .fa-chevron-down {
+            transition: transform 0.3s ease-in-out;
+        }
+        .dropdown-toggle.open .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        
+        <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-blue-800 text-white md:relative md:translate-x-0">
+            <div class="flex flex-col h-full">
+                <div class="flex items-center justify-center h-16 px-4 bg-blue-900">
+                    <span class="text-xl font-semibold">Hotel Vista</span>
+                </div>
+                <div class="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
+                    <nav class="flex-1 space-y-2">
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md bg-blue-700 text-white">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="#" id="bookings-dropdown-toggle" class="dropdown-toggle flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-blue-700 text-white">
+                            <span class="flex items-center">
+                                <i class="fas fa-calendar-check mr-3"></i>
+                                Bookings
+                            </span>
+                            <i class="fas fa-chevron-down ml-auto"></i>
+                        </a>
+                        <div id="bookings-dropdown-menu" class="dropdown-menu ml-8">
+                            <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-blue-700 text-white">
+                                <i class="fas fa-plus-circle mr-3"></i>
+                                New Booking
+                            </a>
+                            <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-blue-700 text-white">
+                                <i class="fas fa-list mr-3"></i>
+                                View All
+                            </a>
+                        </div>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-blue-700 text-white">
+                            <i class="fas fa-bed mr-3"></i>
+                            Rooms
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-blue-700 text-white">
+                            <i class="fas fa-users mr-3"></i>
+                            Guests
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-blue-700 text-white">
+                            <i class="fas fa-concierge-bell mr-3"></i>
+                            Services
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-blue-700 text-white">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            Reports
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-blue-700 text-white">
+                            <i class="fas fa-cog mr-3"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <div id="overlay" class="fixed inset-0 bg-gray-900 opacity-0 transition-opacity md:hidden"></div>
+        <div class="flex flex-col flex-1 overflow-hidden">
+            <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
+                <div class="flex items-center">
+                    <button id="sidebar-toggle" class="text-gray-500 focus:outline-none md:hidden">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="text-xl font-semibold text-gray-800 ml-4">Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 focus:outline-none">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <button class="text-gray-500 focus:outline-none">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                    <div class="relative">
+                        <button class="flex items-center focus:outline-none">
+                            <img class="w-8 h-8 rounded-full" src="https://randomuser.me/api/portraits/women/11.jpg" alt="User">
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-100">
+            </main>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            function openSidebar() {
+                $('#sidebar').addClass('open');
+                $('#overlay').addClass('open');
+            }
+            function closeSidebar() {
+                $('#sidebar').removeClass('open');
+                $('#overlay').removeClass('open');
+            }
+            $('#sidebar-toggle').on('click', function() {
+                openSidebar();
+            });
+            $('#overlay').on('click', function() {
+                closeSidebar();
+            });
+            $(window).resize(function() {
+                if ($(window).width() >= 768) {
+                    $('#sidebar').addClass('open');
+                    $('#overlay').removeClass('open');
+                } else {
+                    $('#sidebar').removeClass('open');
+                }
+            }).resize();
+            $('#bookings-dropdown-toggle').on('click', function(e) {
+                e.preventDefault();
+                $(this).toggleClass('open');
+                $('#bookings-dropdown-menu').toggleClass('open');
+            });
+        });
+    </script>
+</body>
+</html>
